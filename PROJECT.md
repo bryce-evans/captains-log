@@ -49,7 +49,11 @@ chatgpt for managing the sql and responding with answers
 
 ## Resources Off Limits
 
-_TODO_
+
+\
+\
+\
+\
 
 
 ## Final Result
