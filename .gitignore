@@ -1,0 +1,30 @@
+
+# Added by claude-project-planner setup
+ME.md
+.beads/
+.beads_map.json
+issues.jsonl
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+node_modules/
+dist/
+.next/
+.nuxt/
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# claude-project-planner managed entries
+WORKSTREAM.md
+PROJECT.md
+ARCHITECTURE.md
+PLAN.md
+TASKS.md
