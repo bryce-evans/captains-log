@@ -1,9 +1,11 @@
 
 # Added by claude-project-planner setup
 ME.md
+WORKSTREAM.md
 .beads/
 .beads_map.json
 issues.jsonl
+.planner_state.json
 __pycache__/
 *.py[cod]
 .venv/
@@ -22,9 +24,7 @@ Thumbs.db
 .idea/
 *.swp
 
-# claude-project-planner managed entries
-WORKSTREAM.md
-PROJECT.md
-ARCHITECTURE.md
-PLAN.md
-TASKS.md
+# Render app (generated data — source files are committed)
+render/node_modules/
+render/dist/
+render/src/generated/

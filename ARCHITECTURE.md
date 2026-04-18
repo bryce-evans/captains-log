@@ -1,0 +1,1 @@
+Please approve the write to `ARCHITECTURE.md` — I have the full content ready to go.
