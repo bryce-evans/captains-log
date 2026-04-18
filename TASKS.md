@@ -4,7 +4,7 @@
 
 ## Summary
 
-**Total:** 25  |  **P0:** 11  |  **P1:** 13  |  **P2:** 1  |  **Human steps:** 0  |  **Complete:** 0
+**Total:** 25  |  **P0:** 11  |  **P1:** 13  |  **P2:** 1  |  **Human steps:** 3  |  **Complete:** 0
 
 ## Index
 
@@ -121,7 +121,7 @@
 **Status:** todo  
 **Depends on:** T004  
 **Unlocks:** T008, T016, T025  
-**Human required:**   
+> **Human required:** Requires OPENAI_API_KEY in .env. If T009 hasn't been worked yet, create the key at platform.openai.com/api-keys and add it to .env.  
 **Acceptance criteria:**   
 **Verification steps:**   
 **Verification tricky spots:**   
@@ -136,7 +136,7 @@
 **Status:** todo  
 **Depends on:** T004  
 **Unlocks:**   
-**Human required:**   
+> **Human required:** Register at openweathermap.org → create a free API key → add to .env as OPENWEATHER_API_KEY.  
 **Acceptance criteria:**   
 **Verification steps:**   
 **Verification tricky spots:**   
@@ -166,7 +166,7 @@
 **Status:** todo  
 **Depends on:**   
 **Unlocks:** T011  
-**Human required:**   
+> **Human required:** Create an OpenAI API key at platform.openai.com/api-keys → add to .env as OPENAI_API_KEY. Confirm your org has Realtime API access enabled (may require manual activation in org settings).  
 **Acceptance criteria:**   
 **Verification steps:**   
 **Verification tricky spots:**   
