@@ -58,5 +58,5 @@ chatgpt for managing the sql and responding with answers
 
 ## Final Result
 
-_TODO_
+The user creates records via voice, can see records in albums, and ask quesitons via voice to answer questions about them
 
