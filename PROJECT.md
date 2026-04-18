@@ -32,7 +32,11 @@ user can go to query mode and ask questions about their records
 
 ## Priorities
 
-_TODO_
+MVP should just be select from two existing scheumas that are predefined
+use voice to add records. allow anything to be blank. say "done" to be done.
+view records
+enter query mode to ask questions. claude should make SQL commands to the db to answer them
+eerything is local, no login, billing, or cloud required for mvp
 
 
 ## Resources Allowed
