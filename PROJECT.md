@@ -22,7 +22,12 @@ a nice ui that has a way to view all records and view data in a book-like ui
 
 ## Success Criteria
 
-_TODO_
+user can define a new schema, edit an existing schema, select important comments
+user can create a record with voice. the main point of the app is to add a record. We have a set active schema, and a big button to create records. all fields show ina  list, and as the user speaks, live translation answers the fields and they get filled in. filled ones go to the bottom of the list, and remaining ones sit at the top. 
+user can view their records in albums
+auto fields like weather, lat long, time of day can be set 
+schemas are mostly text but can be numbers like temp. these are validated so we can't set them to invalid data. or a warning shows if we dont. because of how answers need to wrok, we can't save data that is invalid to the schema (we can't store "ABC" as the "temperature." it will mess up Q&A feature
+user can go to query mode and ask questions about their records
 
 
 ## Priorities
