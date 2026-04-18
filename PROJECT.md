@@ -41,7 +41,10 @@ eerything is local, no login, billing, or cloud required for mvp
 
 ## Resources Allowed
 
-_TODO_
+lets use react native to be able to deploy on ios and android
+lets use chatgpt live for voice control
+lets use sql for local db
+chatgpt for managing the sql and responding with answers
 
 
 ## Resources Off Limits
