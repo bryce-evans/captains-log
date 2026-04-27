@@ -1,59 +1,71 @@
 import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useStore, Record } from '../../store';
+import { useStore, Record, Schema } from '../../store';
 import { Colors, Fonts } from '../../theme';
 
-function RecordCard({ record }: { record: Record }) {
+const UNIT: { [key: string]: string } = {
+  weight_lbs: 'lbs',
+  length_in: 'in',
+};
+
+function formatStat(key: string, value: string): string {
+  const unit = UNIT[key];
+  return unit ? `${value} ${unit}` : value;
+}
+
+function RecordCard({ record, schema }: { record: Record; schema: Schema | undefined }) {
   const router = useRouter();
   const date = new Date(record.createdAt);
-  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const topFields = Object.entries(record.fields).slice(0, 3);
+  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const importantFields = schema?.fields.filter((f) => f.important) ?? [];
+  const titleField = importantFields[0];
+  const statFields = importantFields.slice(1);
+
+  const title = titleField ? (record.fields[titleField.key] ?? record.schemaName) : record.schemaName;
+  const stats = statFields
+    .map((f) => record.fields[f.key] ? formatStat(f.key, record.fields[f.key]) : null)
+    .filter(Boolean) as string[];
 
   return (
-    <Card style={styles.card} onPress={() => router.push(`/record/${record.id}`)} mode="elevated">
-      <Card.Content>
-        <View style={styles.cardHeader}>
-          <Text style={styles.emoji}>{record.schemaEmoji}</Text>
-          <View style={styles.headerText}>
-            <Text style={styles.schemaName}>{record.schemaName}</Text>
-            <Text style={styles.dateText}>{dateStr} · {timeStr}</Text>
-          </View>
-        </View>
-        <View style={styles.fieldList}>
-          {topFields.map(([key, value]) => (
-            <View key={key} style={styles.fieldRow}>
-              <Text style={styles.fieldKey}>
-                {key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-              </Text>
-              <Text style={styles.fieldVal} numberOfLines={1}>{value}</Text>
-            </View>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => router.push(`/record/${record.id}`)}
+    >
+      <View style={styles.topRow}>
+        <Text style={styles.emoji}>{record.schemaEmoji}</Text>
+        <Text style={styles.date}>{dateStr}</Text>
+      </View>
+
+      <Text style={styles.title}>{title}</Text>
+
+      {stats.length > 0 && (
+        <View style={styles.statsRow}>
+          {stats.map((s, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <Text style={styles.statDot}>·</Text>}
+              <Text style={styles.stat}>{s}</Text>
+            </React.Fragment>
           ))}
-          {Object.keys(record.fields).length > 3 && (
-            <Text style={styles.more}>+{Object.keys(record.fields).length - 3} more fields</Text>
-          )}
         </View>
-      </Card.Content>
-    </Card>
+      )}
+    </Pressable>
   );
 }
 
 export default function AlbumsScreen() {
   const records = useStore((s) => s.records);
+  const schemas = useStore((s) => s.schemas);
 
   if (records.length === 0) {
     return (
       <SafeAreaView style={styles.empty} edges={['bottom']}>
         <Text style={styles.emptyIcon}>📂</Text>
-        <Text style={{ fontSize: 20, color: Colors.textMuted }}>
-          No records yet
-        </Text>
-        <Text style={{ fontSize: 16, color: Colors.textMuted, marginTop: 8 }}>
-          Head to Record to add your first entry
-        </Text>
+        <Text style={styles.emptyTitle}>No records yet</Text>
+        <Text style={styles.emptyHint}>Head to Record to log your first catch</Text>
       </SafeAreaView>
     );
   }
@@ -63,9 +75,11 @@ export default function AlbumsScreen() {
       <FlatList
         data={records}
         keyExtractor={(r) => r.id}
-        renderItem={({ item }) => <RecordCard record={item} />}
+        renderItem={({ item }) => (
+          <RecordCard record={item} schema={schemas.find((s) => s.id === item.schemaId)} />
+        )}
         contentContainerStyle={styles.list}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </SafeAreaView>
   );
@@ -75,16 +89,32 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.paper },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.paper },
   emptyIcon: { fontSize: 56, marginBottom: 12 },
+  emptyTitle: { fontSize: 20, fontFamily: Fonts.bodyBold, color: Colors.textMuted },
+  emptyHint: { fontSize: 15, fontFamily: Fonts.body, color: Colors.textMuted, marginTop: 8 },
+
   list: { padding: 16 },
-  card: { borderRadius: 16, backgroundColor: Colors.white },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  emoji: { fontSize: 36, marginRight: 12 },
-  headerText: { flex: 1 },
-  schemaName: { fontSize: 18, fontFamily: 'Galley', color: Colors.textPrimary },
-  dateText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textMuted, marginTop: 2 },
-  fieldList: { gap: 6 },
-  fieldRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  fieldKey: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textMuted, flex: 1 },
-  fieldVal: { fontFamily: Fonts.bodyBold, fontSize: 14, color: Colors.textPrimary, flex: 1, textAlign: 'right' },
-  more: { fontFamily: Fonts.body, color: Colors.textMuted, fontSize: 13, marginTop: 4 },
+  separator: { height: 10 },
+
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardPressed: { opacity: 0.75 },
+
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  emoji: { fontSize: 22 },
+  date: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textMuted },
+
+  title: { fontFamily: Fonts.heading, fontSize: 26, color: Colors.textPrimary, marginBottom: 6 },
+
+  statsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  stat: { fontFamily: Fonts.bodyBold, fontSize: 17, color: Colors.primary },
+  statDot: { fontFamily: Fonts.body, fontSize: 17, color: Colors.textMuted },
 });
