@@ -33,3 +33,6 @@ render/src/generated/
 .dolt/
 *.db
 .beads-credential-key
+
+# Local species data / illustrations (not committed — explore locally)
+data/
