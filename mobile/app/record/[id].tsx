@@ -1,24 +1,22 @@
-import React from 'react';
-import { Alert, ScrollView, StyleSheet, View, Image } from 'react-native';
-import { Button, Text, Divider, Surface } from 'react-native-paper';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View, Image } from 'react-native';
+import { Button, Dialog, Portal, Text, Divider, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../store';
+import { Colors, Fonts } from '../../theme';
 
 export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const record = useStore((s) => s.records.find((r) => r.id === id));
   const deleteRecord = useStore((s) => s.deleteRecord);
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
-  const handleDelete = () => {
-    Alert.alert('Delete Record', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => { await deleteRecord(id!); router.back(); },
-      },
-    ]);
+  const handleDelete = async () => {
+    setConfirmVisible(false);
+    await deleteRecord(id!);
+    router.back();
   };
 
   if (!record) {
@@ -71,30 +69,62 @@ export default function RecordDetailScreen() {
 
         <Button
           mode="outlined"
-          onPress={handleDelete}
+          onPress={() => setConfirmVisible(true)}
           style={styles.deleteBtn}
           labelStyle={styles.deleteBtnLabel}
-          textColor="#c0392b"
+          textColor={Colors.important}
         >
           Delete Record
         </Button>
       </ScrollView>
+
+      <Portal>
+        <Dialog
+          visible={confirmVisible}
+          onDismiss={() => setConfirmVisible(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>Delete this record?</Dialog.Title>
+          <Dialog.Content>
+            <Text style={styles.dialogBody}>
+              This will permanently remove the {record.schemaName} record from {dateStr}. This cannot be undone.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions style={styles.dialogActions}>
+            <Button
+              onPress={() => setConfirmVisible(false)}
+              textColor={Colors.textMuted}
+              labelStyle={styles.cancelLabel}
+            >
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={handleDelete}
+              buttonColor={Colors.important}
+              labelStyle={styles.deleteLabel}
+            >
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fafaf8' },
+  safe: { flex: 1, backgroundColor: Colors.paper },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 20 },
   hero: { alignItems: 'center', marginBottom: 24, paddingVertical: 16 },
   heroEmoji: { fontSize: 64, marginBottom: 8 },
-  heroTitle: { fontWeight: '700', color: '#1a1a1a' },
-  heroDate: { color: '#555', marginTop: 4 },
-  heroTime: { color: '#888', fontSize: 13 },
+  heroTitle: { fontWeight: '700', color: Colors.textPrimary },
+  heroDate: { color: Colors.textMuted, marginTop: 4 },
+  heroTime: { color: Colors.textMuted, fontSize: 13 },
   card: {
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     overflow: 'hidden',
     marginBottom: 16,
   },
@@ -104,12 +134,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
-  fieldKey: { color: '#666', fontSize: 14, flex: 1 },
-  fieldVal: { fontWeight: '600', color: '#1a1a1a', fontSize: 14, flex: 1, textAlign: 'right' },
+  fieldKey: { color: Colors.textMuted, fontSize: 14, flex: 1 },
+  fieldVal: { fontWeight: '600', color: Colors.textPrimary, fontSize: 14, flex: 1, textAlign: 'right' },
   photoCard: { borderRadius: 16, overflow: 'hidden', marginBottom: 16 },
   photo: { width: '100%', height: 240 },
   noPhoto: { alignItems: 'center', padding: 24 },
   noPhotoText: { color: '#bbb', fontSize: 14 },
-  deleteBtn: { marginTop: 8, marginBottom: 32, borderColor: '#c0392b' },
-  deleteBtnLabel: { fontFamily: 'Inter_600SemiBold', letterSpacing: 0.3 },
+  deleteBtn: { marginTop: 8, marginBottom: 32, borderColor: Colors.important },
+  deleteBtnLabel: { fontFamily: Fonts.bodyBold, letterSpacing: 0.3 },
+
+  dialog: { borderRadius: 16, backgroundColor: Colors.white },
+  dialogTitle: { fontFamily: Fonts.heading, color: Colors.textPrimary },
+  dialogBody: { fontFamily: Fonts.body, color: Colors.textMuted, lineHeight: 22 },
+  dialogActions: { paddingHorizontal: 12, paddingBottom: 8, gap: 8 },
+  cancelLabel: { fontFamily: Fonts.body },
+  deleteLabel: { fontFamily: Fonts.bodyBold },
 });
