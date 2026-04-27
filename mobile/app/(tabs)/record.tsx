@@ -3,6 +3,7 @@ import { Animated, ScrollView, StyleSheet, View, Pressable } from 'react-native'
 import { IconButton, Menu, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
+import { MockTranscriber } from '../../MockTranscriber';
 import { LiveChecklist } from '../../components/LiveChecklist';
 import { Colors, Fonts } from '../../theme';
 
@@ -58,15 +59,8 @@ export default function RecordScreen() {
     resetFieldState();
     setSession('recording');
 
-    const mockValues: { [key: string]: string } = {
-      species: 'Smallmouth Bass', weight_lbs: '3.1', length_in: '16',
-      lure: 'Jig', location: 'Seneca Lake', time: new Date().toLocaleTimeString(),
-      weather: 'Sunny, 72°F', notes: 'Near the dock',
-      item: 'Abstract acrylic #12', price: '85', payment: 'Card', buyer_name: 'Alex T.',
-    };
-
     timerRefs.current = activeSchema.fields.map((field, i) =>
-      setTimeout(() => setFieldValue(field.key, mockValues[field.key] ?? 'N/A'), i * 700)
+      setTimeout(() => setFieldValue(field.key, MockTranscriber.getFieldValue(field)), i * 700)
     );
   };
 
