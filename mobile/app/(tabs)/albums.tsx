@@ -48,10 +48,10 @@ export default function AlbumsScreen() {
     return (
       <SafeAreaView style={styles.empty} edges={['bottom']}>
         <Text style={styles.emptyIcon}>📂</Text>
-        <Text style={{ fontFamily: Fonts.heading, fontSize: 20, color: Colors.textMuted }}>
+        <Text style={{ fontSize: 20, color: Colors.textMuted }}>
           No records yet
         </Text>
-        <Text style={{ fontFamily: Fonts.body, fontSize: 16, color: Colors.textMuted, marginTop: 8 }}>
+        <Text style={{ fontSize: 16, color: Colors.textMuted, marginTop: 8 }}>
           Head to Record to add your first entry
         </Text>
       </SafeAreaView>
@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   emoji: { fontSize: 36, marginRight: 12 },
   headerText: { flex: 1 },
-  schemaName: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.textPrimary },
-  dateText: { fontFamily: Fonts.body, fontSize: 15, color: Colors.textMuted, marginTop: 2 },
+  schemaName: { fontSize: 18, fontFamily: 'Galley', color: Colors.textPrimary },
+  dateText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textMuted, marginTop: 2 },
   fieldList: { gap: 6 },
   fieldRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  fieldKey: { fontFamily: Fonts.body, fontSize: 16, color: Colors.textMuted, flex: 1 },
-  fieldVal: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.textPrimary, flex: 1, textAlign: 'right' },
-  more: { fontFamily: Fonts.body, color: Colors.textMuted, fontSize: 14, marginTop: 4 },
+  fieldKey: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textMuted, flex: 1 },
+  fieldVal: { fontFamily: Fonts.bodyBold, fontSize: 14, color: Colors.textPrimary, flex: 1, textAlign: 'right' },
+  more: { fontFamily: Fonts.body, color: Colors.textMuted, fontSize: 13, marginTop: 4 },
 });

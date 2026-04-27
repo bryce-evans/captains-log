@@ -11,7 +11,7 @@ export default function TabLayout() {
         tabBarStyle: { backgroundColor: Colors.white, borderTopColor: Colors.paperDark },
         headerStyle: { backgroundColor: Colors.primaryDark },
         headerTintColor: Colors.white,
-        headerTitleStyle: { fontFamily: 'PlayfairDisplay_700Bold', fontSize: 20 },
+        headerTitleStyle: { fontFamily: 'Galley', fontSize: 20 },
       }}
     >
       <Tabs.Screen

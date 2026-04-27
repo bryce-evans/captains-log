@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   icon: { fontSize: 20, width: 30, fontFamily: Fonts.bodyBold, marginTop: 2 },
   labelArea: { flex: 1 },
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: Fonts.bodyBold,
     color: Colors.textPrimary,
   },
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   labelImportant: { color: Colors.important },
   value: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: Fonts.body,
     color: Colors.primary,
     marginTop: 1,
