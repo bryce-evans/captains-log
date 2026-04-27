@@ -39,7 +39,9 @@ function RecordCard({ record, schema }: { record: Record; schema: Schema | undef
       onPress={() => router.push(`/record/${record.id}`)}
     >
       {speciesImage && (
-        <Image source={speciesImage} style={styles.thumbnail} resizeMode="cover" />
+        <View style={styles.thumbnailWrap}>
+          <Image source={speciesImage} style={styles.thumbnail} resizeMode="cover" />
+        </View>
       )}
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
@@ -111,9 +113,15 @@ const styles = StyleSheet.create({
   },
   cardPressed: { opacity: 0.75 },
 
+  thumbnailWrap: {
+    width: 90,
+    height: 90,
+    overflow: 'hidden',
+    alignSelf: 'center',
+  },
   thumbnail: {
     width: 90,
-    alignSelf: 'stretch',
+    height: 90,
   },
 
   content: {
