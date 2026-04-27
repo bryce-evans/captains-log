@@ -70,7 +70,7 @@ export default function RecordScreen() {
     );
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
     timerRefs.current.forEach(clearTimeout);
     timerRefs.current = [];
 
@@ -78,7 +78,7 @@ export default function RecordScreen() {
     for (const [k, v] of Object.entries(fieldState)) {
       if (v.value) fields[k] = v.value;
     }
-    addRecord({
+    await addRecord({
       id: String(Date.now()),
       schemaId: activeSchema.id,
       schemaName: activeSchema.name,

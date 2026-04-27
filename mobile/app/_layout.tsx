@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import { useFonts } from 'expo-font';
 import { Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { Colors, Fonts } from '../theme';
+import { useStore } from '../store';
 
 const theme = {
   ...MD3LightTheme,
@@ -17,13 +19,15 @@ const theme = {
 };
 
 export default function RootLayout() {
-  // Fonts load async — app renders immediately with system fallback,
-  // then re-renders once custom fonts are ready.
+  const initDb = useStore((s) => s.initDb);
+
   useFonts({
     Galley: require('../assets/fonts/Galley.ttf'),
     Inter_400Regular,
     Inter_600SemiBold,
   });
+
+  useEffect(() => { initDb(); }, []);
 
   return (
     <PaperProvider theme={theme}>
