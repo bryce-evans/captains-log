@@ -35,10 +35,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="query"
+        name="ask"
         options={{
-          title: 'Query',
-          tabBarLabel: 'Query',
+          title: 'Ask',
+          tabBarLabel: 'Ask',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="magnify" size={size} color={color} />
           ),
