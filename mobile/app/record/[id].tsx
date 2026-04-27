@@ -10,7 +10,12 @@ export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const record = useStore((s) => s.records.find((r) => r.id === id));
+  const schema = useStore((s) => s.schemas.find((sc) => sc.id === record?.schemaId));
   const deleteRecord = useStore((s) => s.deleteRecord);
+
+  const heroTitle = schema?.fields.find((f) => f.important)?.key
+    ? record?.fields[schema.fields.find((f) => f.important)!.key] ?? record?.schemaName
+    : record?.schemaName;
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const handleDelete = async () => {
@@ -36,9 +41,8 @@ export default function RecordDetailScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.hero}>
           <Text style={styles.heroEmoji}>{record.schemaEmoji}</Text>
-          <Text variant="headlineMedium" style={styles.heroTitle}>
-            {record.schemaName}
-          </Text>
+          <Text style={styles.heroTitle}>{heroTitle}</Text>
+          <Text style={styles.heroSubtitle}>{record.schemaName}</Text>
           <Text style={styles.heroDate}>{dateStr}</Text>
           <Text style={styles.heroTime}>{timeStr}</Text>
         </View>
@@ -119,7 +123,8 @@ const styles = StyleSheet.create({
   scroll: { padding: 20 },
   hero: { alignItems: 'center', marginBottom: 24, paddingVertical: 16 },
   heroEmoji: { fontSize: 64, marginBottom: 8 },
-  heroTitle: { fontWeight: '700', color: Colors.textPrimary },
+  heroTitle: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.textPrimary, textAlign: 'center' },
+  heroSubtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textMuted, marginTop: 2, marginBottom: 2 },
   heroDate: { color: Colors.textMuted, marginTop: 4 },
   heroTime: { color: Colors.textMuted, fontSize: 13 },
   card: {
