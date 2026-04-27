@@ -4,6 +4,7 @@ import { IconButton, Menu, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
 import { LiveChecklist } from '../../components/LiveChecklist';
+import { Colors, Fonts } from '../../theme';
 
 type SessionState = 'idle' | 'recording' | 'saved';
 
@@ -95,8 +96,8 @@ export default function RecordScreen() {
   const ringScale = ring.interpolate({ inputRange: [0, 1], outputRange: [1, 1.65] });
   const ringOpacity = ring.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.45, 0.2, 0] });
 
-  const btnColor = session === 'saved' ? '#4CAF50' : '#1B5E20';
-  const btnIcon = session === 'saved' ? '✅' : '🎙️';
+  const btnColor = session === 'saved' ? Colors.done : Colors.primary;
+  const btnIcon = session === 'saved' ? '✅' : '🐟';
   const btnLabel = session === 'saved'
     ? 'Saved!'
     : isRecording
@@ -105,7 +106,7 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Sub-header: schema name + menu */}
+      {/* Sub-header */}
       <View style={styles.subHeader}>
         <Text style={styles.schemaTitle}>
           {activeSchema.emoji}  {activeSchema.name}
@@ -116,6 +117,7 @@ export default function RecordScreen() {
           anchor={
             <IconButton
               icon="dots-vertical"
+              iconColor={Colors.textPrimary}
               size={24}
               onPress={() => setMenuOpen(true)}
               style={styles.menuIcon}
@@ -134,7 +136,7 @@ export default function RecordScreen() {
         </Menu>
       </View>
 
-      {/* Field list — scrollable, grows to fill space */}
+      {/* Field list */}
       <ScrollView style={styles.fieldScroll} contentContainerStyle={styles.fieldContent}>
         {isRecording && resolvedCount > 0 && (
           <Text style={styles.progressLabel}>
@@ -144,7 +146,7 @@ export default function RecordScreen() {
         <LiveChecklist fields={activeSchema.fields} fieldState={fieldState} />
       </ScrollView>
 
-      {/* Bottom button area */}
+      {/* Bottom button */}
       <View style={styles.bottomArea}>
         <View style={styles.buttonWrap}>
           {isRecording && (
@@ -175,7 +177,7 @@ export default function RecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fafaf8' },
+  safe: { flex: 1, backgroundColor: Colors.paper },
 
   subHeader: {
     flexDirection: 'row',
@@ -185,15 +187,25 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
+    borderBottomColor: Colors.paperDark,
+    backgroundColor: Colors.paper,
   },
-  schemaTitle: { fontSize: 17, fontWeight: '700', color: '#1a1a1a' },
+  schemaTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.heading,
+    color: Colors.textPrimary,
+  },
   menuIcon: { margin: 0 },
-  menuHeader: { opacity: 0.5 },
+  menuHeader: { opacity: 0.45 },
 
   fieldScroll: { flex: 1 },
   fieldContent: { padding: 20, paddingBottom: 8 },
-  progressLabel: { color: '#2E7D32', fontWeight: '600', fontSize: 14, marginBottom: 12 },
+  progressLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 16,
+    color: Colors.primary,
+    marginBottom: 12,
+  },
 
   bottomArea: { alignItems: 'center', paddingBottom: 28, paddingTop: 12 },
   buttonWrap: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center' },
@@ -209,13 +221,20 @@ const styles = StyleSheet.create({
     borderRadius: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 10,
   },
   btnIcon: { fontSize: 46 },
-  btnLabel: { color: '#fff', fontWeight: 'bold', fontSize: 14, marginTop: 6, textAlign: 'center', paddingHorizontal: 12 },
-  hint: { marginTop: 12, color: '#aaa', fontSize: 13 },
+  btnLabel: {
+    fontFamily: Fonts.bodyBold,
+    color: Colors.white,
+    fontSize: 15,
+    marginTop: 6,
+    textAlign: 'center',
+    paddingHorizontal: 12,
+  },
+  hint: { marginTop: 12, color: Colors.textMuted, fontSize: 14, fontFamily: Fonts.body },
 });

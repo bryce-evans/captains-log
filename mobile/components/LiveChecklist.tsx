@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { SchemaField, FieldState } from '../store';
+import { Colors, Fonts } from '../theme';
 
 interface Props {
   fields: SchemaField[];
@@ -9,28 +10,28 @@ interface Props {
 }
 
 function ChecklistRow({ field, state }: { field: SchemaField; state: FieldState }) {
-  const theme = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (state.resolved) {
       Animated.sequence([
-        Animated.timing(scale, { toValue: 1.05, duration: 120, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1.04, duration: 120, useNativeDriver: true }),
         Animated.timing(scale, { toValue: 1, duration: 120, useNativeDriver: true }),
       ]).start();
-      Animated.timing(opacity, { toValue: 0.55, duration: 400, useNativeDriver: true }).start();
+      Animated.timing(opacity, { toValue: 0.5, duration: 400, useNativeDriver: true }).start();
     } else {
       Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
     }
   }, [state.resolved]);
 
-  const icon = state.resolved ? '✓' : field.important ? '!' : '○';
   const iconColor = state.resolved
-    ? '#4CAF50'
+    ? Colors.done
     : field.important
-    ? theme.colors.error
-    : theme.colors.onSurfaceVariant;
+    ? Colors.important
+    : Colors.textMuted;
+
+  const icon = state.resolved ? '✓' : field.important ? '!' : '○';
 
   return (
     <Animated.View style={[styles.row, { opacity, transform: [{ scale }] }]}>
@@ -39,16 +40,14 @@ function ChecklistRow({ field, state }: { field: SchemaField; state: FieldState 
         <Text
           style={[
             styles.label,
-            state.resolved && styles.resolved,
-            field.important && !state.resolved && styles.important,
+            state.resolved && styles.labelDone,
+            field.important && !state.resolved && styles.labelImportant,
           ]}
         >
           {field.label}
         </Text>
         {state.resolved && state.value ? (
-          <Text style={styles.value} numberOfLines={1}>
-            {state.value}
-          </Text>
+          <Text style={styles.value}>{state.value}</Text>
         ) : null}
       </View>
     </Animated.View>
@@ -63,24 +62,43 @@ export function LiveChecklist({ fields, fieldState }: Props) {
   return (
     <View style={styles.container}>
       {sorted.map((field) => (
-        <ChecklistRow key={field.key} field={field} state={fieldState[field.key] || { value: null, resolved: false }} />
+        <ChecklistRow
+          key={field.key}
+          field={field}
+          state={fieldState[field.key] || { value: null, resolved: false }}
+        />
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
+  container: { gap: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.paperDark,
   },
-  icon: { fontSize: 18, width: 28, fontWeight: 'bold', marginTop: 1 },
+  icon: { fontSize: 20, width: 30, fontFamily: Fonts.bodyBold, marginTop: 2 },
   labelArea: { flex: 1 },
-  label: { fontSize: 16, fontWeight: '500', color: '#1a1a1a' },
-  resolved: { color: '#888', textDecorationLine: 'line-through' },
-  important: { color: '#c0392b' },
-  value: { fontSize: 13, color: '#555', marginTop: 1 },
+  label: {
+    fontSize: 20,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.textPrimary,
+  },
+  labelDone: {
+    color: Colors.textMuted,
+    textDecorationLine: 'line-through',
+    fontFamily: Fonts.body,
+  },
+  labelImportant: { color: Colors.important },
+  value: {
+    fontSize: 17,
+    fontFamily: Fonts.body,
+    color: Colors.primary,
+    marginTop: 1,
+  },
 });

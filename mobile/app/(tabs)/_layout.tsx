@@ -1,32 +1,34 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Colors } from '../../theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#1B5E20',
-        tabBarInactiveTintColor: '#888',
-        headerStyle: { backgroundColor: '#1B5E20' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarStyle: { backgroundColor: Colors.white, borderTopColor: Colors.paperDark },
+        headerStyle: { backgroundColor: Colors.primaryDark },
+        headerTintColor: Colors.white,
+        headerTitleStyle: { fontFamily: 'PlayfairDisplay_700Bold', fontSize: 20 },
       }}
     >
       <Tabs.Screen
         name="record"
         options={{
-          title: "Record",
-          tabBarLabel: "Record",
+          title: 'Record',
+          tabBarLabel: 'Record',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="microphone" size={size} color={color} />
+            <MaterialCommunityIcons name="fish" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="albums"
         options={{
-          title: "Albums",
-          tabBarLabel: "Albums",
+          title: 'Albums',
+          tabBarLabel: 'Albums',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="book-open-variant" size={size} color={color} />
           ),
@@ -35,8 +37,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="query"
         options={{
-          title: "Query",
-          tabBarLabel: "Query",
+          title: 'Query',
+          tabBarLabel: 'Query',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="magnify" size={size} color={color} />
           ),
