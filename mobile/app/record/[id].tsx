@@ -1,11 +1,76 @@
 import React, { useState } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ImageBackground, Modal, Pressable, ScrollView,
+  StyleSheet, View, Image, Platform,
+} from 'react-native';
 import { Button, Dialog, Portal, Text, Divider, Surface } from 'react-native-paper';
-import { getSpeciesImage } from '../../assets/species';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { Asset } from 'expo-asset';
+import { getSpeciesImage } from '../../assets/species';
 import { useStore } from '../../store';
 import { Colors, Fonts } from '../../theme';
+
+function IconBtn({ icon, onPress }: { icon: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+    >
+      <MaterialCommunityIcons name={icon as any} size={20} color={Colors.white} />
+    </Pressable>
+  );
+}
+
+function PhotoModal({
+  visible, source, onClose,
+}: {
+  visible: boolean;
+  source: any;
+  onClose: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const [saving, setSaving] = useState(false);
+
+  const handleDownload = async () => {
+    if (Platform.OS === 'web') return;
+    setSaving(true);
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') return;
+
+      let uri: string;
+      if (source?.uri) {
+        uri = source.uri;
+      } else {
+        // Bundled asset — resolve to local URI first
+        const asset = await Asset.fromModule(source).downloadAsync();
+        uri = asset.localUri!;
+      }
+      await MediaLibrary.saveToLibraryAsync(uri);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="fade" statusBarTranslucent>
+      <View style={styles.modalBg}>
+        <Image source={source} style={styles.modalImage} resizeMode="contain" />
+
+        <View style={[styles.modalActions, { top: insets.top + 12 }]}>
+          <IconBtn icon="close" onPress={onClose} />
+          {Platform.OS !== 'web' && (
+            <IconBtn icon={saving ? 'loading' : 'download'} onPress={handleDownload} />
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,6 +79,7 @@ export default function RecordDetailScreen() {
   const schema = useStore((s) => s.schemas.find((sc) => sc.id === record?.schemaId));
   const deleteRecord = useStore((s) => s.deleteRecord);
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const [photoVisible, setPhotoVisible] = useState(false);
 
   const heroTitle = schema?.fields.find((f) => f.important)?.key
     ? record?.fields[schema.fields.find((f) => f.important)!.key] ?? record?.schemaName
@@ -45,13 +111,21 @@ export default function RecordDetailScreen() {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
 
-        {/* Hero photo with title overlay */}
+        {/* Hero photo */}
         <ImageBackground
           source={photoSrc ?? undefined}
           style={styles.hero}
           imageStyle={styles.heroImage}
         >
           <View style={styles.heroOverlay} />
+
+          {/* Top-right action */}
+          {photoSrc && (
+            <View style={styles.heroActions}>
+              <IconBtn icon="fullscreen" onPress={() => setPhotoVisible(true)} />
+            </View>
+          )}
+
           <View style={styles.heroContent}>
             <Text style={styles.heroTitle}>{heroTitle}</Text>
             <Text style={styles.heroDate}>{dateStr} · {timeStr}</Text>
@@ -83,6 +157,15 @@ export default function RecordDetailScreen() {
           Delete Record
         </Button>
       </ScrollView>
+
+      {/* Full-screen photo modal */}
+      {photoSrc && (
+        <PhotoModal
+          visible={photoVisible}
+          source={photoSrc}
+          onClose={() => setPhotoVisible(false)}
+        />
+      )}
 
       <Portal>
         <Dialog
@@ -131,22 +214,39 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryDark,
     opacity: 0.45,
   },
+  heroActions: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    flexDirection: 'row',
+    gap: 8,
+  },
   heroContent: {
     flex: 1,
     justifyContent: 'flex-end',
     padding: 20,
   },
-  heroTitle: {
-    fontFamily: Fonts.heading,
-    fontSize: 36,
-    color: Colors.white,
-    marginBottom: 4,
+  heroTitle: { fontFamily: Fonts.heading, fontSize: 36, color: Colors.white, marginBottom: 4 },
+  heroDate: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,255,255,0.8)', textAlign: 'right' },
+
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroDate: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'right',
+  iconBtnPressed: { backgroundColor: 'rgba(0,0,0,0.65)' },
+
+  // Photo modal
+  modalBg: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
+  modalImage: { width: '100%', height: '100%' },
+  modalActions: {
+    position: 'absolute',
+    right: 14,
+    flexDirection: 'row',
+    gap: 8,
   },
 
   card: {
