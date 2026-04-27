@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Image } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Dialog, Portal, Text, Divider, Surface } from 'react-native-paper';
 import { getSpeciesImage } from '../../assets/species';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,11 +13,11 @@ export default function RecordDetailScreen() {
   const record = useStore((s) => s.records.find((r) => r.id === id));
   const schema = useStore((s) => s.schemas.find((sc) => sc.id === record?.schemaId));
   const deleteRecord = useStore((s) => s.deleteRecord);
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
   const heroTitle = schema?.fields.find((f) => f.important)?.key
     ? record?.fields[schema.fields.find((f) => f.important)!.key] ?? record?.schemaName
     : record?.schemaName;
-  const [confirmVisible, setConfirmVisible] = useState(false);
 
   const handleDelete = async () => {
     setConfirmVisible(false);
@@ -34,20 +34,31 @@ export default function RecordDetailScreen() {
   }
 
   const date = new Date(record.createdAt);
-  const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const photoSrc = record.photoUri
+    ? { uri: record.photoUri }
+    : getSpeciesImage(heroTitle ?? '');
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.hero}>
-          <Text style={styles.heroEmoji}>{record.schemaEmoji}</Text>
-          <Text style={styles.heroTitle}>{heroTitle}</Text>
-          <Text style={styles.heroSubtitle}>{record.schemaName}</Text>
-          <Text style={styles.heroDate}>{dateStr}</Text>
-          <Text style={styles.heroTime}>{timeStr}</Text>
-        </View>
 
+        {/* Hero photo with title overlay */}
+        <ImageBackground
+          source={photoSrc ?? undefined}
+          style={styles.hero}
+          imageStyle={styles.heroImage}
+        >
+          <View style={styles.heroOverlay} />
+          <View style={styles.heroContent}>
+            <Text style={styles.heroTitle}>{heroTitle}</Text>
+            <Text style={styles.heroDate}>{dateStr} · {timeStr}</Text>
+          </View>
+        </ImageBackground>
+
+        {/* Field table */}
         <Surface style={styles.card} elevation={1}>
           {Object.entries(record.fields).map(([key, value], idx, arr) => (
             <React.Fragment key={key}>
@@ -61,21 +72,6 @@ export default function RecordDetailScreen() {
             </React.Fragment>
           ))}
         </Surface>
-
-        {(() => {
-          const src = record.photoUri
-            ? { uri: record.photoUri }
-            : getSpeciesImage(heroTitle ?? '');
-          return src ? (
-            <Surface style={styles.photoCard} elevation={1}>
-              <Image source={src} style={styles.photo} resizeMode="cover" />
-            </Surface>
-          ) : (
-            <View style={styles.noPhoto}>
-              <Text style={styles.noPhotoText}>📷 No photo attached</Text>
-            </View>
-          );
-        })()}
 
         <Button
           mode="outlined"
@@ -126,17 +122,38 @@ export default function RecordDetailScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.paper },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: 20 },
-  hero: { alignItems: 'center', marginBottom: 24, paddingVertical: 16 },
-  heroEmoji: { fontSize: 64, marginBottom: 8 },
-  heroTitle: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.textPrimary, textAlign: 'center' },
-  heroSubtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textMuted, marginTop: 2, marginBottom: 2 },
-  heroDate: { color: Colors.textMuted, marginTop: 4 },
-  heroTime: { color: Colors.textMuted, fontSize: 13 },
+  scroll: { paddingBottom: 40 },
+
+  hero: { width: '100%', height: 260, marginBottom: 20 },
+  heroImage: { resizeMode: 'cover' },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.primaryDark,
+    opacity: 0.45,
+  },
+  heroContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  heroTitle: {
+    fontFamily: Fonts.heading,
+    fontSize: 36,
+    color: Colors.white,
+    marginBottom: 4,
+  },
+  heroDate: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'right',
+  },
+
   card: {
     borderRadius: 16,
     backgroundColor: Colors.white,
     overflow: 'hidden',
+    marginHorizontal: 16,
     marginBottom: 16,
   },
   fieldRow: {
@@ -147,11 +164,8 @@ const styles = StyleSheet.create({
   },
   fieldKey: { color: Colors.textMuted, fontSize: 14, flex: 1 },
   fieldVal: { fontWeight: '600', color: Colors.textPrimary, fontSize: 14, flex: 1, textAlign: 'right' },
-  photoCard: { borderRadius: 16, overflow: 'hidden', marginBottom: 16 },
-  photo: { width: '100%', height: 240 },
-  noPhoto: { alignItems: 'center', padding: 24 },
-  noPhotoText: { color: '#bbb', fontSize: 14 },
-  deleteBtn: { marginTop: 8, marginBottom: 32, borderColor: Colors.important },
+
+  deleteBtn: { marginHorizontal: 16, marginTop: 8, borderColor: Colors.important },
   deleteBtnLabel: { fontFamily: Fonts.bodyBold, letterSpacing: 0.3 },
 
   dialog: { borderRadius: 16, backgroundColor: Colors.white },
