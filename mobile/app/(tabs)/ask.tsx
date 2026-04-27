@@ -1,118 +1,147 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Text, TextInput, Surface, ActivityIndicator } from 'react-native-paper';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Surface, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useStore } from '../../store';
-import { QueryEngine } from '../../db/QueryEngine';
+import { BUILT_IN_QUERIES, QueryEngine } from '../../db/QueryEngine';
+import { Colors, Fonts } from '../../theme';
 
-export default function QueryScreen() {
-  const activeSchema = useStore((s) => s.activeSchema);
-  const [question, setQuestion] = useState('');
+const CATEGORIES = Array.from(new Set(BUILT_IN_QUERIES.map((q) => q.category)));
+
+export default function AskScreen() {
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
 
-  const handleAsk = async () => {
-    if (!question.trim()) return;
+  const runQuery = async (id: string) => {
+    setActiveId(id);
     setLoading(true);
     setAnswer(null);
     try {
-      const result = await QueryEngine.run(question);
+      const result = await QueryEngine.runById(id);
       setAnswer(result);
     } finally {
       setLoading(false);
     }
   };
 
-  const suggestions = [
-    'What was my biggest fish?',
-    'How many perch did I catch?',
-    'What was my last record?',
-    'Show me all sales over $100',
-  ];
+  const activeLabel = BUILT_IN_QUERIES.find((q) => q.id === activeId)?.label;
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text variant="bodyMedium" style={styles.context}>
-          Querying: {activeSchema.emoji} {activeSchema.name}
-        </Text>
+      <ScrollView contentContainerStyle={styles.scroll}>
 
-        <TextInput
-          mode="outlined"
-          label="Ask a question about your records…"
-          value={question}
-          onChangeText={setQuestion}
-          multiline
-          style={styles.input}
-          right={<TextInput.Icon icon="microphone" onPress={() => setQuestion('What was my biggest fish?')} />}
-          onSubmitEditing={handleAsk}
-          returnKeyType="search"
-        />
-
-        <Button
-          mode="contained"
-          onPress={handleAsk}
-          style={styles.askBtn}
-          contentStyle={styles.askBtnContent}
-          disabled={!question.trim() || loading}
-        >
-          Ask
-        </Button>
-
-        {loading && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color="#1B5E20" />
-            <Text style={styles.loadingText}>Searching your records…</Text>
-          </View>
-        )}
-
-        {answer && !loading && (
-          <Surface style={styles.answerCard} elevation={2}>
-            <Text style={styles.answerLabel}>Answer</Text>
-            <Text style={styles.answerText}>{answer}</Text>
+        {/* Result card */}
+        {(loading || answer) && (
+          <Surface style={styles.resultCard} elevation={2}>
+            {activeLabel && (
+              <Text style={styles.resultLabel}>{activeLabel}</Text>
+            )}
+            {loading
+              ? <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                  <Text style={styles.loadingText}>Querying records…</Text>
+                </View>
+              : <Text style={styles.resultText}>{answer}</Text>
+            }
           </Surface>
         )}
 
-        {!answer && !loading && (
-          <View style={styles.suggestions}>
-            <Text style={styles.suggestLabel}>Try asking:</Text>
-            {suggestions.map((s) => (
-              <Button
-                key={s}
-                mode="text"
-                compact
-                onPress={() => setQuestion(s)}
-                style={styles.suggestion}
-                labelStyle={styles.suggestionLabel}
-              >
-                {s}
-              </Button>
-            ))}
+        {/* Query groups */}
+        {CATEGORIES.map((category) => (
+          <View key={category} style={styles.group}>
+            <Text style={styles.groupLabel}>{category}</Text>
+            <Surface style={styles.groupCard} elevation={1}>
+              {BUILT_IN_QUERIES
+                .filter((q) => q.category === category)
+                .map((q, idx, arr) => (
+                  <React.Fragment key={q.id}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.queryRow,
+                        activeId === q.id && styles.queryRowActive,
+                        pressed && styles.queryRowPressed,
+                      ]}
+                      onPress={() => runQuery(q.id)}
+                    >
+                      <Text style={[
+                        styles.queryLabel,
+                        activeId === q.id && styles.queryLabelActive,
+                      ]}>
+                        {q.label}
+                      </Text>
+                      <Text style={styles.queryChevron}>›</Text>
+                    </Pressable>
+                    {idx < arr.length - 1 && <View style={styles.divider} />}
+                  </React.Fragment>
+                ))}
+            </Surface>
           </View>
-        )}
+        ))}
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fafaf8' },
-  scroll: { padding: 20, flexGrow: 1 },
-  context: { color: '#888', marginBottom: 16, textAlign: 'center' },
-  input: { backgroundColor: '#fff', marginBottom: 12 },
-  askBtn: { marginBottom: 24 },
-  askBtnContent: { paddingVertical: 4 },
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  loadingText: { color: '#555' },
-  answerCard: {
+  safe: { flex: 1, backgroundColor: Colors.paper },
+  scroll: { padding: 20, paddingBottom: 40 },
+
+  resultCard: {
     borderRadius: 16,
     padding: 20,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.primaryLight,
+    marginBottom: 24,
   },
-  answerLabel: { fontWeight: '700', color: '#2E7D32', marginBottom: 8, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
-  answerText: { fontSize: 16, color: '#1a1a1a', lineHeight: 24 },
-  suggestions: { marginTop: 8 },
-  suggestLabel: { color: '#aaa', fontSize: 13, marginBottom: 8 },
-  suggestion: { alignSelf: 'flex-start', marginBottom: 4 },
-  suggestionLabel: { color: '#2E7D32', textAlign: 'left' },
+  resultLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11,
+    color: Colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  resultText: {
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    color: Colors.textPrimary,
+    lineHeight: 24,
+  },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  loadingText: { fontFamily: Fonts.body, color: Colors.textMuted },
+
+  group: { marginBottom: 24 },
+  groupLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  groupCard: {
+    borderRadius: 16,
+    backgroundColor: Colors.white,
+    overflow: 'hidden',
+  },
+
+  queryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  queryRowActive: { backgroundColor: Colors.primaryLight },
+  queryRowPressed: { backgroundColor: Colors.paperDark },
+  queryLabel: {
+    fontFamily: Fonts.body,
+    fontSize: 15,
+    color: Colors.textPrimary,
+  },
+  queryLabelActive: { fontFamily: Fonts.bodyBold, color: Colors.primary },
+  queryChevron: { fontSize: 20, color: Colors.textMuted, lineHeight: 22 },
+
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.paperDark, marginLeft: 20 },
 });

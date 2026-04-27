@@ -1,10 +1,13 @@
 import { Platform } from 'react-native';
 import { getDb } from './client';
 
-type Matcher = {
-  keywords: string[];
-  run: (lower: string) => Promise<string>;
-};
+export interface BuiltInQuery {
+  id: string;
+  label: string;
+  category: string;
+  run: () => Promise<string>;
+  webFallback: string;
+}
 
 function fmt(date: string): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -102,71 +105,77 @@ async function countAll(): Promise<string> {
   return `You have ${row?.count ?? 0} total records.`;
 }
 
-const MATCHERS: Matcher[] = [
+export const BUILT_IN_QUERIES: BuiltInQuery[] = [
   {
-    keywords: ['biggest', 'largest', 'heaviest', 'biggest fish'],
-    run: () => biggest(),
+    id: 'biggest_fish',
+    label: 'Biggest catch',
+    category: 'Fishing 🎣',
+    run: biggest,
+    webFallback: 'Your biggest catch was a Largemouth Bass weighing 4.2 lbs on April 26.',
   },
   {
-    keywords: ['perch'],
-    run: () => countSpecies('perch'),
+    id: 'count_fishing',
+    label: 'Total fish logged',
+    category: 'Fishing 🎣',
+    run: countFishing,
+    webFallback: 'You have 2 fishing records logged.',
   },
   {
-    keywords: ['bass'],
+    id: 'count_bass',
+    label: 'Bass caught',
+    category: 'Fishing 🎣',
     run: () => countSpecies('bass'),
+    webFallback: "You've caught 1 Bass.",
   },
   {
-    keywords: ['trout'],
+    id: 'count_perch',
+    label: 'Perch caught',
+    category: 'Fishing 🎣',
+    run: () => countSpecies('perch'),
+    webFallback: "You've caught 1 Perch.",
+  },
+  {
+    id: 'count_trout',
+    label: 'Trout caught',
+    category: 'Fishing 🎣',
     run: () => countSpecies('trout'),
+    webFallback: 'No Trout records found.',
   },
   {
-    keywords: ['how many fish', 'fish caught', 'total fish', 'how many caught'],
-    run: () => countFishing(),
+    id: 'total_sales',
+    label: 'Total revenue',
+    category: 'Art Sales 🎨',
+    run: totalSales,
+    webFallback: 'Total sales: $250.00 across 3 items.',
   },
   {
-    keywords: ['total sale', 'how much', 'revenue', 'made'],
-    run: () => totalSales(),
+    id: 'biggest_sale',
+    label: 'Biggest sale',
+    category: 'Art Sales 🎨',
+    run: biggestSale,
+    webFallback: 'Your biggest sale was "Watercolor landscape #7" for $120 on April 20.',
   },
   {
-    keywords: ['biggest sale', 'most expensive', 'highest price'],
-    run: () => biggestSale(),
+    id: 'last_record',
+    label: 'Last record logged',
+    category: 'All Records',
+    run: lastRecord,
+    webFallback: 'Your last record was a Largemouth Bass catch on April 26.',
   },
   {
-    keywords: ['last', 'recent', 'latest'],
-    run: () => lastRecord(),
+    id: 'count_all',
+    label: 'Total records',
+    category: 'All Records',
+    run: countAll,
+    webFallback: 'You have 3 total records.',
   },
-  {
-    keywords: ['how many', 'count', 'total'],
-    run: () => countAll(),
-  },
-];
-
-// Web fallback — SQLite not available
-const WEB_ANSWERS: { keywords: string[]; answer: string }[] = [
-  { keywords: ['biggest', 'largest', 'heaviest'], answer: 'Your biggest catch was a Largemouth Bass weighing 4.2 lbs, caught on April 26 at Lake Cayuga.' },
-  { keywords: ['perch'], answer: "You've caught 2 perch." },
-  { keywords: ['last', 'recent'], answer: 'Your last record was a Largemouth Bass catch on April 26.' },
-  { keywords: ['sale', 'sold', 'total'], answer: 'Total sales: $250.00 across 3 items.' },
 ];
 
 export const QueryEngine = {
-  async run(question: string): Promise<string> {
-    const lower = question.toLowerCase();
-
-    if (Platform.OS === 'web') {
-      for (const { keywords, answer } of WEB_ANSWERS) {
-        if (keywords.some((k) => lower.includes(k))) return answer;
-      }
-      return `Searched your records for: "${question}". (Live SQL queries require the native app.)`;
-    }
-
-    for (const matcher of MATCHERS) {
-      if (matcher.keywords.some((k) => lower.includes(k))) {
-        return matcher.run(lower);
-      }
-    }
-
-    // Generic fallback: count total records
-    return countAll().then((s) => `${s} Try asking about a specific species, sale, or date.`);
+  async runById(id: string): Promise<string> {
+    const query = BUILT_IN_QUERIES.find((q) => q.id === id);
+    if (!query) return 'Query not found.';
+    if (Platform.OS === 'web') return query.webFallback;
+    return query.run();
   },
 };
