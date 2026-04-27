@@ -1,29 +1,28 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, View, Pressable } from 'react-native';
-import { Text, Surface } from 'react-native-paper';
+import { IconButton, Menu, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
 import { LiveChecklist } from '../../components/LiveChecklist';
-import { SchemaSelector } from '../../components/SchemaSelector';
 
 type SessionState = 'idle' | 'recording' | 'saved';
 
 export default function RecordScreen() {
+  const schemas = useStore((s) => s.schemas);
   const activeSchema = useStore((s) => s.activeSchema);
+  const setActiveSchema = useStore((s) => s.setActiveSchema);
   const fieldState = useStore((s) => s.fieldState);
   const resetFieldState = useStore((s) => s.resetFieldState);
   const addRecord = useStore((s) => s.addRecord);
   const setFieldValue = useStore((s) => s.setFieldValue);
 
   const [session, setSession] = useState<SessionState>('idle');
+  const [menuOpen, setMenuOpen] = useState(false);
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Pulse animation while recording
   const pulse = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef<Animated.CompositeAnimation | null>(null);
-
-  // Ring ripple
   const ring = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef<Animated.CompositeAnimation | null>(null);
   const ringAnim = useRef<Animated.CompositeAnimation | null>(null);
 
   const resolvedCount = Object.values(fieldState).filter((f) => f.resolved).length;
@@ -34,15 +33,14 @@ export default function RecordScreen() {
     if (isRecording) {
       pulseAnim.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulse, { toValue: 1.08, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1.07, duration: 600, useNativeDriver: true }),
           Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
         ])
       );
       pulseAnim.current.start();
-
       ringAnim.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(ring, { toValue: 1, duration: 900, useNativeDriver: true }),
+          Animated.timing(ring, { toValue: 1, duration: 1000, useNativeDriver: true }),
           Animated.timing(ring, { toValue: 0, duration: 0, useNativeDriver: true }),
         ])
       );
@@ -60,33 +58,21 @@ export default function RecordScreen() {
     setSession('recording');
 
     const mockValues: { [key: string]: string } = {
-      species: 'Smallmouth Bass',
-      weight_lbs: '3.1',
-      length_in: '16',
-      lure: 'Jig',
-      location: 'Seneca Lake',
-      time: new Date().toLocaleTimeString(),
-      weather: 'Sunny, 72°F',
-      notes: 'Near the dock',
-      item: 'Abstract acrylic #12',
-      price: '85',
-      payment: 'Card',
-      buyer_name: 'Alex T.',
+      species: 'Smallmouth Bass', weight_lbs: '3.1', length_in: '16',
+      lure: 'Jig', location: 'Seneca Lake', time: new Date().toLocaleTimeString(),
+      weather: 'Sunny, 72°F', notes: 'Near the dock',
+      item: 'Abstract acrylic #12', price: '85', payment: 'Card', buyer_name: 'Alex T.',
     };
 
-    timerRefs.current = activeSchema.fields.map((field, i) => {
-      return setTimeout(() => {
-        setFieldValue(field.key, mockValues[field.key] ?? 'N/A');
-      }, i * 700);
-    });
+    timerRefs.current = activeSchema.fields.map((field, i) =>
+      setTimeout(() => setFieldValue(field.key, mockValues[field.key] ?? 'N/A'), i * 700)
+    );
   };
 
   const stopRecording = () => {
-    // Cancel any pending mock fills
     timerRefs.current.forEach(clearTimeout);
     timerRefs.current = [];
 
-    // Save whatever is resolved
     const fields: { [key: string]: string } = {};
     for (const [k, v] of Object.entries(fieldState)) {
       if (v.value) fields[k] = v.value;
@@ -100,81 +86,127 @@ export default function RecordScreen() {
       fields,
     });
     setSession('saved');
-    setTimeout(() => setSession('idle'), 2000);
+    setTimeout(() => {
+      resetFieldState();
+      setSession('idle');
+    }, 1800);
   };
 
-  const ringScale = ring.interpolate({ inputRange: [0, 1], outputRange: [1, 1.6] });
-  const ringOpacity = ring.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.5, 0.3, 0] });
+  const ringScale = ring.interpolate({ inputRange: [0, 1], outputRange: [1, 1.65] });
+  const ringOpacity = ring.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.45, 0.2, 0] });
 
-  const buttonColor = session === 'saved' ? '#4CAF50' : '#1B5E20';
-  const buttonIcon = session === 'saved' ? '✅' : '🎙️';
-  const buttonLabel =
-    session === 'saved' ? 'Saved!' : isRecording ? 'Release to save' : 'Hold to Record';
+  const btnColor = session === 'saved' ? '#4CAF50' : '#1B5E20';
+  const btnIcon = session === 'saved' ? '✅' : '🎙️';
+  const btnLabel = session === 'saved'
+    ? 'Saved!'
+    : isRecording
+    ? 'Release to save'
+    : activeSchema.logLabel;
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <SchemaSelector />
+      {/* Sub-header: schema name + menu */}
+      <View style={styles.subHeader}>
+        <Text style={styles.schemaTitle}>
+          {activeSchema.emoji}  {activeSchema.name}
+        </Text>
+        <Menu
+          visible={menuOpen}
+          onDismiss={() => setMenuOpen(false)}
+          anchor={
+            <IconButton
+              icon="dots-vertical"
+              size={24}
+              onPress={() => setMenuOpen(true)}
+              style={styles.menuIcon}
+            />
+          }
+        >
+          <Menu.Item title="Switch Schema" disabled style={styles.menuHeader} />
+          {schemas.map((s) => (
+            <Menu.Item
+              key={s.id}
+              title={`${s.emoji}  ${s.name}`}
+              onPress={() => { setActiveSchema(s); setMenuOpen(false); }}
+              leadingIcon={activeSchema.id === s.id ? 'check' : undefined}
+            />
+          ))}
+        </Menu>
+      </View>
 
-        <View style={styles.center}>
-          {/* Ripple ring behind button */}
-          <View style={styles.buttonWrap}>
-            {isRecording && (
-              <Animated.View
-                style={[
-                  styles.ring,
-                  { backgroundColor: buttonColor, transform: [{ scale: ringScale }], opacity: ringOpacity },
-                ]}
-              />
-            )}
-            <Animated.View style={{ transform: [{ scale: pulse }] }}>
-              <Pressable
-                onPressIn={session === 'idle' ? startRecording : undefined}
-                onPressOut={session === 'recording' ? stopRecording : undefined}
-                style={[styles.bigButton, { backgroundColor: buttonColor }]}
-              >
-                <Text style={styles.micIcon}>{buttonIcon}</Text>
-                <Text style={styles.bigButtonLabel}>{buttonLabel}</Text>
-              </Pressable>
-            </Animated.View>
-          </View>
-
-          {!isRecording && session === 'idle' && (
-            <Text style={styles.hint}>Hold the button and speak your record</Text>
-          )}
-
-          {isRecording && (
-            <Text style={styles.progressText}>
-              {resolvedCount} / {totalCount} fields heard
-            </Text>
-          )}
-        </View>
-
-        {(isRecording || session === 'saved') && resolvedCount > 0 && (
-          <Surface style={styles.checklistCard} elevation={1}>
-            <LiveChecklist fields={activeSchema.fields} fieldState={fieldState} />
-          </Surface>
+      {/* Field list — scrollable, grows to fill space */}
+      <ScrollView style={styles.fieldScroll} contentContainerStyle={styles.fieldContent}>
+        {isRecording && resolvedCount > 0 && (
+          <Text style={styles.progressLabel}>
+            {resolvedCount} / {totalCount} fields heard
+          </Text>
         )}
+        <LiveChecklist fields={activeSchema.fields} fieldState={fieldState} />
       </ScrollView>
+
+      {/* Bottom button area */}
+      <View style={styles.bottomArea}>
+        <View style={styles.buttonWrap}>
+          {isRecording && (
+            <Animated.View
+              style={[
+                styles.ring,
+                { backgroundColor: btnColor, transform: [{ scale: ringScale }], opacity: ringOpacity },
+              ]}
+            />
+          )}
+          <Animated.View style={{ transform: [{ scale: pulse }] }}>
+            <Pressable
+              onPressIn={session === 'idle' ? startRecording : undefined}
+              onPressOut={session === 'recording' ? stopRecording : undefined}
+              style={[styles.bigButton, { backgroundColor: btnColor }]}
+            >
+              <Text style={styles.btnIcon}>{btnIcon}</Text>
+              <Text style={styles.btnLabel}>{btnLabel}</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+        {session === 'idle' && (
+          <Text style={styles.hint}>Hold to speak, release to save</Text>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fafaf8' },
-  scroll: { padding: 20, flexGrow: 1 },
-  center: { alignItems: 'center', paddingTop: 32, paddingBottom: 24 },
-  buttonWrap: { alignItems: 'center', justifyContent: 'center', width: 200, height: 200 },
+
+  subHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ddd',
+  },
+  schemaTitle: { fontSize: 17, fontWeight: '700', color: '#1a1a1a' },
+  menuIcon: { margin: 0 },
+  menuHeader: { opacity: 0.5 },
+
+  fieldScroll: { flex: 1 },
+  fieldContent: { padding: 20, paddingBottom: 8 },
+  progressLabel: { color: '#2E7D32', fontWeight: '600', fontSize: 14, marginBottom: 12 },
+
+  bottomArea: { alignItems: 'center', paddingBottom: 28, paddingTop: 12 },
+  buttonWrap: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center' },
   ring: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
   },
   bigButton: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -183,13 +215,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
-  micIcon: { fontSize: 56 },
-  bigButtonLabel: { color: '#fff', fontWeight: 'bold', fontSize: 15, marginTop: 6, textAlign: 'center' },
-  hint: { color: '#888', marginTop: 20, textAlign: 'center', maxWidth: 260 },
-  progressText: { marginTop: 16, color: '#2E7D32', fontWeight: '600', fontSize: 15 },
-  checklistCard: {
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
+  btnIcon: { fontSize: 46 },
+  btnLabel: { color: '#fff', fontWeight: 'bold', fontSize: 14, marginTop: 6, textAlign: 'center', paddingHorizontal: 12 },
+  hint: { marginTop: 12, color: '#aaa', fontSize: 13 },
 });

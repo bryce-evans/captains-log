@@ -15,6 +15,7 @@ export interface Schema {
   id: string;
   name: string;
   emoji: string;
+  logLabel: string; // e.g. "Log Fish", "Log Sale"
   fields: SchemaField[];
 }
 
@@ -54,6 +55,7 @@ const FISHING_SCHEMA: Schema = {
   id: 'fishing',
   name: 'Fishing Catch',
   emoji: '🎣',
+  logLabel: 'Log Fish',
   fields: [
     { key: 'species', label: 'Species', type: 'text', important: true },
     { key: 'weight_lbs', label: 'Weight (lbs)', type: 'number', important: true },
@@ -70,6 +72,7 @@ const ART_SCHEMA: Schema = {
   id: 'art_sale',
   name: 'Art Show Sale',
   emoji: '🎨',
+  logLabel: 'Log Sale',
   fields: [
     { key: 'item', label: 'Item Sold', type: 'text', important: true },
     { key: 'price', label: 'Price ($)', type: 'number', important: true },
