@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View, Image } from 'react-native';
 import { Button, Dialog, Portal, Text, Divider, Surface } from 'react-native-paper';
+import { getSpeciesImage } from '../../assets/species';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../store';
@@ -61,15 +62,20 @@ export default function RecordDetailScreen() {
           ))}
         </Surface>
 
-        {record.photoUri ? (
-          <Surface style={styles.photoCard} elevation={1}>
-            <Image source={{ uri: record.photoUri }} style={styles.photo} resizeMode="cover" />
-          </Surface>
-        ) : (
-          <View style={styles.noPhoto}>
-            <Text style={styles.noPhotoText}>📷 No photo attached</Text>
-          </View>
-        )}
+        {(() => {
+          const src = record.photoUri
+            ? { uri: record.photoUri }
+            : getSpeciesImage(heroTitle ?? '');
+          return src ? (
+            <Surface style={styles.photoCard} elevation={1}>
+              <Image source={src} style={styles.photo} resizeMode="cover" />
+            </Surface>
+          ) : (
+            <View style={styles.noPhoto}>
+              <Text style={styles.noPhotoText}>📷 No photo attached</Text>
+            </View>
+          );
+        })()}
 
         <Button
           mode="outlined"

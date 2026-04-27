@@ -1,10 +1,11 @@
 import React from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useStore, Record, Schema } from '../../store';
 import { Colors, Fonts } from '../../theme';
+import { getSpeciesImage } from '../../assets/species';
 
 const UNIT: { [key: string]: string } = {
   weight_lbs: 'lbs',
@@ -30,28 +31,34 @@ function RecordCard({ record, schema }: { record: Record; schema: Schema | undef
     .map((f) => record.fields[f.key] ? formatStat(f.key, record.fields[f.key]) : null)
     .filter(Boolean) as string[];
 
+  const speciesImage = getSpeciesImage(title);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => router.push(`/record/${record.id}`)}
     >
-      <View style={styles.topRow}>
-        <Text style={styles.emoji}>{record.schemaEmoji}</Text>
-        <Text style={styles.date}>{dateStr}</Text>
-      </View>
-
-      <Text style={styles.title}>{title}</Text>
-
-      {stats.length > 0 && (
-        <View style={styles.statsRow}>
-          {stats.map((s, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <Text style={styles.statDot}>·</Text>}
-              <Text style={styles.stat}>{s}</Text>
-            </React.Fragment>
-          ))}
+      <ImageBackground
+        source={speciesImage ?? undefined}
+        style={styles.cardBg}
+        imageStyle={styles.cardBgImage}
+      >
+        <View style={styles.overlay} />
+        <View style={styles.content}>
+          <Text style={styles.date}>{dateStr}</Text>
+          <Text style={styles.title}>{title}</Text>
+          {stats.length > 0 && (
+            <View style={styles.statsRow}>
+              {stats.map((s, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <Text style={styles.statDot}>·</Text>}
+                  <Text style={styles.stat}>{s}</Text>
+                </React.Fragment>
+              ))}
+            </View>
+          )}
         </View>
-      )}
+      </ImageBackground>
     </Pressable>
   );
 }
@@ -96,25 +103,28 @@ const styles = StyleSheet.create({
   separator: { height: 10 },
 
   card: {
-    backgroundColor: Colors.white,
     borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  cardPressed: { opacity: 0.75 },
+  cardPressed: { opacity: 0.8 },
 
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  emoji: { fontSize: 22 },
-  date: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textMuted },
+  cardBg: { width: '100%' },
+  cardBgImage: { resizeMode: 'cover', opacity: 0.55 },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.primaryDark,
+    opacity: 0.55,
+  },
 
-  title: { fontFamily: Fonts.heading, fontSize: 26, color: Colors.textPrimary, marginBottom: 6 },
-
+  content: { paddingHorizontal: 20, paddingVertical: 18 },
+  date: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.75)', marginBottom: 4 },
+  title: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.white, marginBottom: 6 },
   statsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  stat: { fontFamily: Fonts.bodyBold, fontSize: 17, color: Colors.primary },
-  statDot: { fontFamily: Fonts.body, fontSize: 17, color: Colors.textMuted },
+  stat: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.white },
+  statDot: { fontFamily: Fonts.body, fontSize: 16, color: 'rgba(255,255,255,0.6)' },
 });
