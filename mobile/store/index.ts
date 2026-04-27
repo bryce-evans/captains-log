@@ -57,22 +57,7 @@ export const FISHING_SCHEMA: Schema = {
   ],
 };
 
-export const ART_SCHEMA: Schema = {
-  id: 'art_sale',
-  name: 'Art Show Sale',
-  emoji: '🎨',
-  logLabel: 'Log Sale',
-  fields: [
-    { key: 'item',       label: 'Item Sold',       type: 'text',   important: true },
-    { key: 'price',      label: 'Price ($)',        type: 'number', important: true },
-    { key: 'payment',    label: 'Payment Method',  type: 'enum',   important: false, options: ['Cash', 'Card', 'Venmo', 'Other'] },
-    { key: 'buyer_name', label: 'Buyer Name',      type: 'text',   important: false },
-    { key: 'time',       label: 'Time',            type: 'text',   important: false, autoFill: 'timestamp' },
-    { key: 'notes',      label: 'Notes',           type: 'text',   important: false },
-  ],
-};
-
-const DEFAULT_SCHEMAS = [FISHING_SCHEMA, ART_SCHEMA];
+const DEFAULT_SCHEMAS = [FISHING_SCHEMA];
 
 
 // ── Store ─────────────────────────────────────────────────────────────────────

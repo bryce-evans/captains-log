@@ -37,22 +37,6 @@ const FIELD_VALUES: { [key: string]: () => string } = {
           'Shallow cove', 'Early morning bite', 'Hit on first cast',
           'Fight took 3 min', 'Released after photo', '']),
 
-  item: () => {
-    const types = ['Watercolor landscape', 'Abstract acrylic', 'Pencil sketch',
-                   'Oil still life', 'Charcoal portrait', 'Ink drawing', 'Pastel study'];
-    const n = Math.floor(Math.random() * 20) + 1;
-    return `${pick(types)} #${n}`;
-  },
-
-  price: () => pick(['25', '35', '45', '60', '75', '85', '100', '120', '150', '200', '250']),
-
-  buyer_name: () => {
-    const first = pick(['Alex', 'Jordan', 'Morgan', 'Sam', 'Casey', 'Taylor',
-                        'Jamie', 'Riley', 'Dana', 'Avery', 'Quinn', 'Sage']);
-    const last = pick(['T.', 'M.', 'B.', 'R.', 'K.', 'W.', 'H.', 'L.']);
-    return `${first} ${last}`;
-  },
-
   time: () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 };
 

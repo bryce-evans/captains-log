@@ -68,35 +68,6 @@ async function lastRecord(): Promise<string> {
   return `Your last record was "${label}" logged on ${fmt(row.created_at)}.`;
 }
 
-async function totalSales(): Promise<string> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ total: number; count: number }>(
-    `SELECT SUM(CAST(rf.field_value AS REAL)) AS total, COUNT(*) AS count
-     FROM records r
-     JOIN record_fields rf ON rf.record_id = r.id AND rf.field_key = 'price'
-     WHERE r.schema_id = 'art_sale'`
-  );
-  if (!row || row.count === 0) return 'No art sale records found yet.';
-  return `Total sales: $${row.total.toFixed(2)} across ${row.count} item${row.count === 1 ? '' : 's'}.`;
-}
-
-async function biggestSale(): Promise<string> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ item: string; price: string; created_at: string }>(
-    `SELECT rf_i.field_value AS item,
-            rf_p.field_value AS price,
-            r.created_at
-     FROM records r
-     JOIN record_fields rf_p ON rf_p.record_id = r.id AND rf_p.field_key = 'price'
-     JOIN record_fields rf_i ON rf_i.record_id = r.id AND rf_i.field_key = 'item'
-     WHERE r.schema_id = 'art_sale'
-     ORDER BY CAST(rf_p.field_value AS REAL) DESC
-     LIMIT 1`
-  );
-  if (!row) return 'No art sale records found yet.';
-  return `Your biggest sale was "${row.item}" for $${row.price} on ${fmt(row.created_at)}.`;
-}
-
 async function countAll(): Promise<string> {
   const db = await getDb();
   const row = await db.getFirstAsync<{ count: number }>(
@@ -140,20 +111,6 @@ export const BUILT_IN_QUERIES: BuiltInQuery[] = [
     category: 'Fishing 🎣',
     run: () => countSpecies('trout'),
     webFallback: 'No Trout records found.',
-  },
-  {
-    id: 'total_sales',
-    label: 'Total revenue',
-    category: 'Art Sales 🎨',
-    run: totalSales,
-    webFallback: 'Total sales: $250.00 across 3 items.',
-  },
-  {
-    id: 'biggest_sale',
-    label: 'Biggest sale',
-    category: 'Art Sales 🎨',
-    run: biggestSale,
-    webFallback: 'Your biggest sale was "Watercolor landscape #7" for $120 on April 20.',
   },
   {
     id: 'last_record',
