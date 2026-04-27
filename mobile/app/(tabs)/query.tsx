@@ -3,23 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Text, TextInput, Surface, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
-
-const MOCK_ANSWERS: { [q: string]: string } = {
-  default: 'I searched your records and found: ',
-  fish: 'Your biggest fish was a Largemouth Bass weighing 4.2 lbs, caught on April 26 at Lake Cayuga.',
-  perch: 'You\'ve caught 1 perch — a Yellow Perch weighing 0.8 lbs on April 25.',
-  last: 'Your last record was a Largemouth Bass catch on April 26 at 2:32 PM.',
-  sale: 'Your most recent sale was "Watercolor landscape #7" for $120 via Venmo on April 20.',
-};
-
-function getAnswer(q: string): string {
-  const lower = q.toLowerCase();
-  if (lower.includes('perch')) return MOCK_ANSWERS.perch;
-  if (lower.includes('biggest') || lower.includes('largest') || lower.includes('heaviest')) return MOCK_ANSWERS.fish;
-  if (lower.includes('last')) return MOCK_ANSWERS.last;
-  if (lower.includes('sale') || lower.includes('sold')) return MOCK_ANSWERS.sale;
-  return `Based on your records: I found ${Math.floor(Math.random() * 5) + 1} relevant entries matching "${q}". The most recent was on April 26.`;
-}
+import { QueryEngine } from '../../db/QueryEngine';
 
 export default function QueryScreen() {
   const activeSchema = useStore((s) => s.activeSchema);
@@ -27,14 +11,16 @@ export default function QueryScreen() {
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
 
-  const handleAsk = () => {
+  const handleAsk = async () => {
     if (!question.trim()) return;
     setLoading(true);
     setAnswer(null);
-    setTimeout(() => {
-      setAnswer(getAnswer(question));
+    try {
+      const result = await QueryEngine.run(question);
+      setAnswer(result);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   const suggestions = [

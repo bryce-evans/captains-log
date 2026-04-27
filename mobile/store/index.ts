@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Platform } from 'react-native';
 import { SchemaRepository } from '../db/SchemaRepository';
 import { RecordRepository } from '../db/RecordRepository';
+import { seedTestData } from '../db/seed';
 
 export type FieldType = 'text' | 'number' | 'enum';
 
@@ -73,24 +74,6 @@ export const ART_SCHEMA: Schema = {
 
 const DEFAULT_SCHEMAS = [FISHING_SCHEMA, ART_SCHEMA];
 
-// Seed records shown on web (no SQLite) and on first native launch before DB loads
-const SEED_RECORDS: Record[] = [
-  {
-    id: '1', schemaId: 'fishing', schemaName: 'Fishing Catch', schemaEmoji: '🎣',
-    createdAt: '2026-04-26T14:32:00Z',
-    fields: { species: 'Largemouth Bass', weight_lbs: '4.2', length_in: '18', lure: 'Plastic Worm', location: 'Lake Cayuga', weather: 'Partly cloudy, 68°F' },
-  },
-  {
-    id: '2', schemaId: 'fishing', schemaName: 'Fishing Catch', schemaEmoji: '🎣',
-    createdAt: '2026-04-25T09:15:00Z',
-    fields: { species: 'Yellow Perch', weight_lbs: '0.8', length_in: '10', lure: 'Minnow', location: 'Lake Cayuga', weather: 'Sunny, 61°F' },
-  },
-  {
-    id: '3', schemaId: 'art_sale', schemaName: 'Art Show Sale', schemaEmoji: '🎨',
-    createdAt: '2026-04-20T11:45:00Z',
-    fields: { item: 'Watercolor landscape #7', price: '120', payment: 'Venmo', buyer_name: 'Sarah M.' },
-  },
-];
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
@@ -141,7 +124,7 @@ export const useStore = create<AppState>((set, get) => ({
   resetFieldState: () =>
     set((state) => ({ fieldState: buildInitialFieldState(state.activeSchema) })),
 
-  records: SEED_RECORDS,
+  records: [],
   loadRecords: async () => {
     if (Platform.OS === 'web') return;
     const { schemas } = get();
@@ -162,6 +145,7 @@ export const useStore = create<AppState>((set, get) => ({
       return;
     }
     await SchemaRepository.seed(DEFAULT_SCHEMAS);
+    await seedTestData();
     const schemas = await SchemaRepository.getAll();
     const records = await RecordRepository.getAll(schemaMap(schemas));
     set({ schemas, records, dbReady: true });
