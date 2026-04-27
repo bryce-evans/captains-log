@@ -1,13 +1,25 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View, Image } from 'react-native';
-import { Text, Divider, Surface } from 'react-native-paper';
+import { Alert, ScrollView, StyleSheet, View, Image } from 'react-native';
+import { Button, Text, Divider, Surface } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '../../store';
 
 export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const record = useStore((s) => s.records.find((r) => r.id === id));
+  const deleteRecord = useStore((s) => s.deleteRecord);
+
+  const handleDelete = () => {
+    Alert.alert('Delete Record', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => { await deleteRecord(id!); router.back(); },
+      },
+    ]);
+  };
 
   if (!record) {
     return (
@@ -56,6 +68,16 @@ export default function RecordDetailScreen() {
             <Text style={styles.noPhotoText}>📷 No photo attached</Text>
           </View>
         )}
+
+        <Button
+          mode="outlined"
+          onPress={handleDelete}
+          style={styles.deleteBtn}
+          labelStyle={styles.deleteBtnLabel}
+          textColor="#c0392b"
+        >
+          Delete Record
+        </Button>
       </ScrollView>
     </SafeAreaView>
   );
@@ -88,4 +110,6 @@ const styles = StyleSheet.create({
   photo: { width: '100%', height: 240 },
   noPhoto: { alignItems: 'center', padding: 24 },
   noPhotoText: { color: '#bbb', fontSize: 14 },
+  deleteBtn: { marginTop: 8, marginBottom: 32, borderColor: '#c0392b' },
+  deleteBtnLabel: { fontFamily: 'Inter_600SemiBold', letterSpacing: 0.3 },
 });

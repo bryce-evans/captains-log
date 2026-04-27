@@ -90,6 +90,7 @@ interface AppState {
   records: Record[];
   loadRecords: () => Promise<void>;
   addRecord: (r: Record) => Promise<void>;
+  deleteRecord: (id: string) => Promise<void>;
 
   queryAnswer: string | null;
   setQueryAnswer: (a: string | null) => void;
@@ -134,6 +135,10 @@ export const useStore = create<AppState>((set, get) => ({
   addRecord: async (r) => {
     if (Platform.OS !== 'web') await RecordRepository.insert(r);
     set((state) => ({ records: [r, ...state.records] }));
+  },
+  deleteRecord: async (id) => {
+    if (Platform.OS !== 'web') await RecordRepository.delete(id);
+    set((state) => ({ records: state.records.filter((r) => r.id !== id) }));
   },
 
   queryAnswer: null,
