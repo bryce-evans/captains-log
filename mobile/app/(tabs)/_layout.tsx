@@ -1,6 +1,26 @@
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text } from 'react-native-paper';
 import { Colors, Fonts } from '../../theme';
+
+function RecordTabButton(props: any) {
+  const focused = props.accessibilityState?.selected;
+  return (
+    <Pressable
+      onPress={props.onPress}
+      onLongPress={props.onLongPress}
+      style={styles.recordOuter}
+    >
+      <View style={[styles.recordCircle, focused && styles.recordCircleFocused]}>
+        <MaterialCommunityIcons name="fish" size={26} color={Colors.white} />
+      </View>
+      <Text style={[styles.recordLabel, focused && styles.recordLabelFocused]}>
+        Record
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function TabLayout() {
   return (
@@ -8,7 +28,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: { backgroundColor: Colors.white, borderTopColor: Colors.paperDark },
+        tabBarStyle: styles.tabBar,
         headerStyle: { backgroundColor: Colors.primaryDark },
         headerTintColor: Colors.white,
         headerTitleStyle: { fontFamily: 'Galley', fontSize: 20 },
@@ -38,14 +58,7 @@ export default function TabLayout() {
         name="record"
         options={{
           title: 'Record',
-          tabBarLabel: 'Record',
-          tabBarLabelStyle: {
-            fontFamily: Fonts.bodyBold,
-            fontSize: 13,
-          },
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="fish" size={30} color={color} />
-          ),
+          tabBarButton: (props) => <RecordTabButton {...props} />,
         }}
       />
       <Tabs.Screen
@@ -71,3 +84,45 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: Colors.white,
+    borderTopColor: Colors.paperDark,
+    height: 64,
+    overflow: 'visible',
+  },
+
+  recordOuter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 8,
+    marginTop: -22,
+  },
+  recordCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    backgroundColor: Colors.primaryDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 8,
+    marginBottom: 4,
+  },
+  recordCircleFocused: {
+    backgroundColor: Colors.primary,
+  },
+  recordLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  recordLabelFocused: {
+    color: Colors.primary,
+  },
+});
