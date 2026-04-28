@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors } from '../../theme';
+import { Colors, Fonts } from '../../theme';
 
 export default function TabLayout() {
   return (
@@ -15,16 +15,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="record"
-        options={{
-          title: 'Record',
-          tabBarLabel: 'Record',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="fish" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="albums"
         options={{
           title: 'Albums',
@@ -35,22 +25,36 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ask"
-        options={{
-          title: 'Ask',
-          tabBarLabel: 'Ask',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="magnify" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="map"
         options={{
           title: 'Map',
           tabBarLabel: 'Map',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="map-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="record"
+        options={{
+          title: 'Record',
+          tabBarLabel: 'Record',
+          tabBarLabelStyle: {
+            fontFamily: Fonts.bodyBold,
+            fontSize: 13,
+          },
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="fish" size={30} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="ask"
+        options={{
+          title: 'Ask',
+          tabBarLabel: 'Ask',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="magnify" size={size} color={color} />
           ),
         }}
       />
