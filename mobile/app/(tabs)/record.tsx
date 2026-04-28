@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  bottomArea: { alignItems: 'center', paddingBottom: 28, paddingTop: 12 },
+  bottomArea: { alignItems: 'center', paddingBottom: 12, paddingTop: 4 },
   buttonWrap: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center' },
   ring: {
     position: 'absolute',
