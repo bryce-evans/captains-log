@@ -13,7 +13,7 @@ function RecordTabButton(props: any) {
       style={styles.recordOuter}
     >
       <View style={[styles.recordCircle, focused && styles.recordCircleFocused]}>
-        <MaterialCommunityIcons name="fish" size={26} color={focused ? Colors.white : Colors.textMuted} />
+        <MaterialCommunityIcons name="fish" size={26} color={Colors.white} />
       </View>
       <Text style={[styles.recordLabel, focused && styles.recordLabelFocused]}>
         Record
@@ -104,19 +104,18 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 18,
-    backgroundColor: Colors.paperDark,
+    backgroundColor: Colors.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 0.22,
     shadowRadius: 8,
     elevation: 8,
     marginBottom: 4,
   },
   recordCircleFocused: {
     backgroundColor: Colors.primary,
-    shadowOpacity: 0.28,
   },
   recordLabel: {
     fontFamily: Fonts.bodyBold,
