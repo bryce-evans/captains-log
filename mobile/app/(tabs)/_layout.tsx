@@ -45,6 +45,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="map"
+        options={{
+          title: 'Map',
+          tabBarLabel: 'Map',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="map-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Profile',
