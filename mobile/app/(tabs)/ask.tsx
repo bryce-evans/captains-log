@@ -3,11 +3,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Surface, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BUILT_IN_QUERIES, QueryEngine } from '../../db/QueryEngine';
+import { useStore } from '../../store';
 import { Colors, Fonts } from '../../theme';
 
 const CATEGORIES = Array.from(new Set(BUILT_IN_QUERIES.map((q) => q.category)));
 
 export default function AskScreen() {
+  const records = useStore((s) => s.records);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function AskScreen() {
     setLoading(true);
     setAnswer(null);
     try {
-      const result = await QueryEngine.runById(id);
+      const result = await QueryEngine.runById(id, records);
       setAnswer(result);
     } finally {
       setLoading(false);

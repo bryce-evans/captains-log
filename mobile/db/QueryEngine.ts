@@ -1,17 +1,20 @@
 import { Platform } from 'react-native';
 import { getDb } from './client';
+import { Record } from '../store';
 
 export interface BuiltInQuery {
   id: string;
   label: string;
   category: string;
   run: () => Promise<string>;
-  webFallback: string;
+  runFromRecords: (records: Record[]) => string;
 }
 
 function fmt(date: string): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 }
+
+// ── SQLite implementations (native) ──────────────────────────────────────────
 
 async function biggest(): Promise<string> {
   const db = await getDb();
@@ -40,9 +43,7 @@ async function countSpecies(species: string): Promise<string> {
   );
   const n = row?.count ?? 0;
   const label = species.charAt(0).toUpperCase() + species.slice(1);
-  return n === 0
-    ? `No ${label} records found.`
-    : `You've caught ${n} ${label}${n === 1 ? '' : 's'}.`;
+  return n === 0 ? `No ${label} records found.` : `You've caught ${n} ${label}${n === 1 ? '' : 's'}.`;
 }
 
 async function countFishing(): Promise<string> {
@@ -70,11 +71,46 @@ async function lastRecord(): Promise<string> {
 
 async function countAll(): Promise<string> {
   const db = await getDb();
-  const row = await db.getFirstAsync<{ count: number }>(
-    `SELECT COUNT(*) AS count FROM records`
-  );
+  const row = await db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM records`);
   return `You have ${row?.count ?? 0} total records.`;
 }
+
+// ── In-memory implementations (web / store data) ─────────────────────────────
+
+function biggestFromRecords(records: Record[]): string {
+  const fishing = records.filter((r) => r.schemaId === 'fishing' && r.fields['weight_lbs']);
+  if (!fishing.length) return 'No fishing records found yet.';
+  const best = fishing.reduce((a, b) =>
+    parseFloat(a.fields['weight_lbs']) > parseFloat(b.fields['weight_lbs']) ? a : b
+  );
+  return `Your biggest catch was a ${best.fields['species']} weighing ${best.fields['weight_lbs']} lbs, logged on ${fmt(best.createdAt)}.`;
+}
+
+function countSpeciesFromRecords(records: Record[], species: string): string {
+  const n = records.filter((r) =>
+    r.fields['species']?.toLowerCase().includes(species)
+  ).length;
+  const label = species.charAt(0).toUpperCase() + species.slice(1);
+  return n === 0 ? `No ${label} records found.` : `You've caught ${n} ${label}${n === 1 ? '' : 's'}.`;
+}
+
+function countFishingFromRecords(records: Record[]): string {
+  const n = records.filter((r) => r.schemaId === 'fishing').length;
+  return `You have ${n} fishing record${n === 1 ? '' : 's'} logged.`;
+}
+
+function lastRecordFromRecords(records: Record[]): string {
+  if (!records.length) return 'No records found yet.';
+  const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  const label = latest.fields['species'] ?? latest.schemaName;
+  return `Your last record was "${label}" logged on ${fmt(latest.createdAt)}.`;
+}
+
+function countAllFromRecords(records: Record[]): string {
+  return `You have ${records.length} total record${records.length === 1 ? '' : 's'}.`;
+}
+
+// ── Query table ───────────────────────────────────────────────────────────────
 
 export const BUILT_IN_QUERIES: BuiltInQuery[] = [
   {
@@ -82,57 +118,57 @@ export const BUILT_IN_QUERIES: BuiltInQuery[] = [
     label: 'Biggest catch',
     category: 'Fishing 🎣',
     run: biggest,
-    webFallback: 'Your biggest catch was a Largemouth Bass weighing 4.2 lbs on April 26.',
+    runFromRecords: biggestFromRecords,
   },
   {
     id: 'count_fishing',
     label: 'Total fish logged',
     category: 'Fishing 🎣',
     run: countFishing,
-    webFallback: 'You have 2 fishing records logged.',
+    runFromRecords: countFishingFromRecords,
   },
   {
     id: 'count_bass',
     label: 'Bass caught',
     category: 'Fishing 🎣',
     run: () => countSpecies('bass'),
-    webFallback: "You've caught 1 Bass.",
+    runFromRecords: (r) => countSpeciesFromRecords(r, 'bass'),
   },
   {
     id: 'count_perch',
     label: 'Perch caught',
     category: 'Fishing 🎣',
     run: () => countSpecies('perch'),
-    webFallback: "You've caught 1 Perch.",
+    runFromRecords: (r) => countSpeciesFromRecords(r, 'perch'),
   },
   {
     id: 'count_trout',
     label: 'Trout caught',
     category: 'Fishing 🎣',
     run: () => countSpecies('trout'),
-    webFallback: 'No Trout records found.',
+    runFromRecords: (r) => countSpeciesFromRecords(r, 'trout'),
   },
   {
     id: 'last_record',
     label: 'Last record logged',
     category: 'All Records',
     run: lastRecord,
-    webFallback: 'Your last record was a Largemouth Bass catch on April 26.',
+    runFromRecords: lastRecordFromRecords,
   },
   {
     id: 'count_all',
     label: 'Total records',
     category: 'All Records',
     run: countAll,
-    webFallback: 'You have 3 total records.',
+    runFromRecords: countAllFromRecords,
   },
 ];
 
 export const QueryEngine = {
-  async runById(id: string): Promise<string> {
+  async runById(id: string, records: Record[]): Promise<string> {
     const query = BUILT_IN_QUERIES.find((q) => q.id === id);
     if (!query) return 'Query not found.';
-    if (Platform.OS === 'web') return query.webFallback;
+    if (Platform.OS === 'web') return query.runFromRecords(records);
     return query.run();
   },
 };
