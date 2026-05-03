@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Captain's Log",
+    "slug": "captains-log",
+    "scheme": "captainslog",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF8F2"
+    },
+    "ios": {
+      "bundleIdentifier": "com.captainslog.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Captain's Log uses your microphone to capture voice notes for your journal entries.",
+        "NSLocationWhenInUseUsageDescription": "Captain's Log uses your location to add place context to your journal entries.",
+        "NSPhotoLibraryUsageDescription": "Captain's Log lets you attach photos to your journal entries.",
+        "NSCameraUsageDescription": "Captain's Log lets you capture photos for your journal entries."
+      }
+    },
+    "android": {
+      "package": "com.captainslog.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FBF8F2"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-splash-screen",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Captain's Log to use your location to add place context to entries."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Captain's Log to access your photos to attach to entries.",
+          "cameraPermission": "Allow Captain's Log to use the camera to capture photos for entries."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Captain's Log to access the microphone to record voice notes."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

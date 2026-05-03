@@ -1,4 +1,5 @@
 {
+  "allowedTools": ["Edit", "Bash", "Write", "Read"],
   "hooks": {
     "PreCompact": [
       {
